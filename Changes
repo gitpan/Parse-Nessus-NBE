@@ -1,0 +1,6 @@
+Revision history for Perl extension Parse::Nessus::NBE.
+
+0.01  Mon May 12 22:18:39 2003
+	- original version; created by h2xs 1.22 with options
+		-X -n Parse::Nessus::NBE
+
