@@ -2,15 +2,15 @@
 package Parse::Nessus::NBE;
 
 use strict;
-use vars qw/ $VERSION @ISA @EXPORT_OK /;
+use vars qw/ $VERSION @ISA @EXPORT_OK %EXPORT_TAGS /;
 
 require Exporter;
 
 @ISA       = qw/ Exporter /;
 @EXPORT_OK =
-  qw/ nbanners nports nplugin nwebdirs nnfs nos nsnmp nstatos nstatservices/;
-
-$VERSION = '1.0';
+  qw/ nbanners nports nplugin nwebdirs nnfs nos nsnmp nstatos nstatservices nstatvulns /;
+%EXPORT_TAGS = (all => [qw/ nbanners nports nplugin nwebdirs nnfs nos nsnmp nstatos nstatservices nstatvulns /] );
+$VERSION = '1.1';
 
 use constant WEBDIR => 11032;  # nessus plugin id for web directories discovered
 use constant NFS    => 10437;  # nessus plugin id for nfs shares discovered
@@ -198,6 +198,39 @@ sub nstatservices {
     return @graphservices;
 }
 
+sub nstatvulns {
+    my (@ndata) = @_;
+    my (@allvuln);
+    my $nsevval = pop (@ndata);
+    my $nseverity;
+    if ($nsevval == 1) {
+	    $nseverity = "Hole";
+    }
+    elsif ($nsevval == 2) {
+	    $nseverity = "Warning";
+    }
+    elsif ($nsevval == 3) {
+	    $nseverity = "Note";
+    }
+    foreach my $ndata (@ndata) {
+            my @result = split ( /\|/, $ndata );
+	    if (! $result[5]) {
+		    next;
+	    }
+            elsif ( $result[5] =~ /Security $nseverity/ ) {
+                push @allvuln, $result[4];
+            }
+    }
+    my %count;
+    map { $count{$_}++ } @allvuln;
+    my @rearranged = sort { $count{$b} <=> $count{$a} } keys %count;
+    my @graphvuln;
+    foreach (@rearranged) {
+        push @graphvuln, join "|", $_, "$count{$_}\n";
+    }
+    return @graphvuln;
+}
+
 1;
 
 __END__
@@ -377,9 +410,35 @@ To obtain a service count, useful for graphing
 	ssh (22/tcp)|25
 	sun-answerbook (8888/tcp)|22
 
+To obtain a vulnerability count, useful for graphing
+
+	# note: options are as follows:
+	# 1 returns high severity vulnerabilties
+	# 2 returns medium severity vulnerabilities
+	# 3 returns low level security notes
+	
+	my @countvulns = nstatvulns(@nessusdata,1);
+	print @countvulns;
+
+	#returns
+	plugin id|count
+
+	#example
+	11875|40
+	11412|17
+	10116|12
+	11856|11	
+	10932|10
+	10937|7
+	11793|6
+
 =head1 AUTHOR
 
-David J Kyger, dave@norootsquash.net
+David J Kyger <dave@norootsquash.net>
+
+=head1 Thanks
+
+Gwendolynn ferch Elydyr <gwen@reptiles.org>
 
 =head1 COPYRIGHT
 
