@@ -4,3 +4,6 @@ Revision history for Perl extension Parse::Nessus::NBE.
 	- original version; created by h2xs 1.22 with options
 		-X -n Parse::Nessus::NBE
 
+1.0  Thu Jan 22 23:13:31 2004
+	- added two functions (nstatos, nstatservices)
+	- updated POD
